@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+  labels:
+    app: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      labels:
+        app: orders
+    spec:
+      containers:
+      - name: orders
+        # image: us-east1-docker.pkg.dev/custom-citadel-270100/orders-repo/orders:v5
+        # image: ordersacr.azurecr.io/orders:v5
+        image: 536697255933.dkr.ecr.us-east-1.amazonaws.com/orders:v5
+        ports:
+        - containerPort: 8080
+        env:
+          - name: DATABASE_URI
+            value: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/postgres"
+          - name: PEER_NODES
+            # value: "http://a20d4d7c6ceae40ce8df41eb0090ac77-1717624617.us-east-1.elb.amazonaws.com,http://134.33.166.1"
+            # value: "http://a20d4d7c6ceae40ce8df41eb0090ac77-1717624617.us-east-1.elb.amazonaws.com,http://34.23.18.17"
+            value: "http://34.23.18.17,http://134.33.166.1"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 60
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "128Mi"
+          requests:
+            cpu: "0.2"
+            memory: "64Mi"
